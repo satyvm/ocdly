@@ -1,6 +1,6 @@
 # ocdly
 
-Storefront: [ocdly.com](https://ocdly.com). Source repository: [satyvm/ocdly](https://github.com/satyvm/ocdly).
+Staging storefront: [ocdly.blckh.top](https://ocdly.blckh.top). Source repository: [satyvm/ocdly](https://github.com/satyvm/ocdly). The `ocdly.com` domain is reserved for a later production deployment.
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Hono, ORPC, and more.
 
@@ -21,33 +21,25 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 
 ## Getting Started
 
-First, install the dependencies:
+Start the complete local stack with one command:
 
 ```bash
-bun install
+bun run docker:up
 ```
 
-## Database Setup
-
-This project uses PostgreSQL with Drizzle ORM.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
-
-3. Apply the schema to your database:
+Open the storefront at [localhost:3001](http://localhost:3001), the API at
+[localhost:3000](http://localhost:3000), and the Commerce Dashboard at
+[localhost:3050/dashboard/](http://localhost:3050/dashboard/). The Compose
+stack starts both databases, applies application migrations, seeds the Commerce
+catalogue, and starts the web, API, Commerce server and worker. Stop it with:
 
 ```bash
-bun run db:push
+bun run docker:down
 ```
 
-Then, run the development server:
-
-```bash
-bun run dev
-```
-
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
+For development outside Docker, run `bun install --frozen-lockfile` and use
+the app-specific commands in [the storefront guide](apps/web/STOREFRONT.md)
+and [the Commerce guide](apps/commerce/README.md).
 
 ## UI Customization
 
@@ -108,25 +100,29 @@ For a deployed Docker image, pass `AXIOM_API_KEY`, `AXIOM_DATASET`, and `AXIOM_E
 
 ### Docker Compose
 
-- Start the full local stack: `bun run local:up`
+- Start the full local stack: `bun run docker:up`
 - Open Storefront at `http://localhost:3001`, API at
   `http://localhost:3000`, and Commerce Dashboard at
   `http://localhost:3050/dashboard/`.
-- Follow Storefront logs with `bun run docker:logs` or Commerce logs with
-  `bun run commerce:logs`.
-- Stop both stacks without deleting their database or asset volumes:
-  `bun run local:down`.
+- Follow all logs with `bun run docker:logs`, or use
+  `docker compose logs -f commerce commerce-worker` for Commerce only.
+- Stop the stack without deleting its database or asset volumes:
+  `bun run docker:down`.
 
-The two local Compose files contain development defaults. The Commerce image
-builds once for its seed, server and worker. Storefront runs database migrations
-before its API. Override local values with shell environment variables when
-needed; no `.env` file or Axiom credential is required for the Compose workflow.
-The local Compose files publish ports for the browser and development tools.
+The root local Compose file contains development defaults. It builds one
+Commerce image for its seed, server and worker, and one application image for
+the web, API and migrations. Both databases and the Commerce assets use
+separate named volumes. Override local values with shell environment variables
+when needed; no `.env` file or Axiom credential is required. The local file
+publishes ports for the browser and development tools.
+If you used the former separate Commerce Compose project, back up and restore
+its database and asset volumes before deleting that project; the unified
+project uses new volume ownership.
 
-Coolify uses the two production Compose files in
-[the Coolify runbook](docs/deployment/coolify.md). Those files keep databases and
-one-shot jobs private and include Coolify's `exclude_from_hc` setting, so they
-are separate from the local Compose files.
+Coolify staging uses the single
+[staging Compose file and runbook](docs/deployment/coolify.md). It keeps
+databases and one-shot jobs private. Production deployment will be designed
+separately for `ocdly.com`.
 
 For more details, see the guide on [Deploying with Docker Compose](https://www.better-t-stack.dev/docs/guides/docker).
 
@@ -162,8 +158,6 @@ ocdly/
 - `bun run docker:up`: Build and start the Docker Compose stack
 - `bun run docker:logs`: Tail logs from the Docker Compose stack
 - `bun run docker:down`: Stop the Docker Compose stack
-- `bun run local:up`: Build and start Commerce, then Storefront
-- `bun run local:down`: Stop both local stacks without removing volumes
 
 ## Better Auth Schema Generation
 

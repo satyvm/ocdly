@@ -9,12 +9,13 @@ identity, editorial outfits or the future wardrobe domain.
 From the repository root:
 
 ```bash
-bun run commerce:up
+bun run docker:up
 ```
 
-That command starts PostgreSQL, runs the idempotent seed once, then starts the
-API and worker. The initial catalogue contains 3 products and 15 tracked
-variants: Essential Heavyweight Tee, One More Scroll Tee and Linen Ease Shirt.
+That command starts the whole local stack, including the separate Commerce
+PostgreSQL service, idempotent seed, API and worker. The initial catalogue
+contains 3 products and 15 tracked variants: Essential Heavyweight Tee, One
+More Scroll Tee and Linen Ease Shirt.
 Each colour/size variant has a stable SKU, on-hand inventory and an INR price.
 
 Endpoints:
@@ -62,7 +63,7 @@ channel uses INR and tax-inclusive prices.
 Stop the local stack with:
 
 ```bash
-bun run commerce:down
+bun run docker:down
 ```
 
 The database and uploaded-asset volumes remain available for the next start.
@@ -179,9 +180,9 @@ to an existing Commerce database require a reviewed migration.
 The commerce package is wired into the root Bun workspace and Turbo pipeline.
 Use the root scripts for common operations:
 
-    bun run commerce:up
-    bun run commerce:logs
-    bun run commerce:down
+    bun run docker:up
+    docker compose logs -f commerce commerce-worker
+    bun run docker:down
 
 For non-Compose development, commerce:dev, commerce:worker, commerce:seed, and
 commerce:migrate delegate to package tasks through Turbo. The commerce database
@@ -190,7 +191,7 @@ schema.
 
 ## Scope notes
 
-- The dummy payment handler is local-only. Cashfree belongs to T5.
+- The dummy payment handler is for local and staging use only. Cashfree belongs to T5.
 - Standard delivery is a placeholder. Delhivery serviceability belongs to T5/T7.
 - The Storefront API signs short-lived assertions for verified Better Auth phone
   users. When both applications share `VENDURE_IDENTITY_SECRET`, this Shop API

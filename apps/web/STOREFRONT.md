@@ -7,7 +7,7 @@ The customer-facing ocdly experience, built with TanStack Start and backed by th
 From the repository root:
 
     bun install --frozen-lockfile
-    bun run commerce:up
+    bun run docker:up
     VENDURE_SHOP_API_URL=http://localhost:3050/shop-api VITE_SERVER_URL=http://localhost:3000 bun run --cwd apps/web dev:bare --host 0.0.0.0 --port 3010 --strictPort
 
 Open http://localhost:3010. On the tailnet, use the same port on this machine's ts.net hostname. The Vite server listens on all interfaces while Tailscale keeps access private. If the Vendure URL is omitted in development, a three-product preview catalogue keeps UI work unblocked. Production requires an explicit Vendure endpoint.
