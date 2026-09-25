@@ -1,0 +1,34 @@
+**/node_modules
+.git
+.local
+
+**/dist
+**/build
+**/.next
+**/.nuxt
+**/.output
+**/.svelte-kit
+**/.astro
+**/.turbo
+.turbo
+
+**/.wrangler
+**/.alchemy
+**/.expo
+**/.vercel
+*.log
+
+Dockerfile
+**/Dockerfile
+docker-compose.yml
+
+# Local env and generated handoff files stay out of Docker build contexts.
+# Public web values use build arguments; runtime values come from Compose.
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.schema
+
+local.db
+local.db-*
+.data

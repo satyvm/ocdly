@@ -1,0 +1,8 @@
+.env
+dist/
+.tanstack-tmp/
+src/gql/
+static/assets/*
+!static/assets/.gitkeep
+static/email/
+vendure-import-error.log

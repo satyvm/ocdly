@@ -1,0 +1,110 @@
+name: ocdly
+
+x-server-build: &server-build
+  context: .
+  dockerfile: apps/server/Dockerfile
+  args:
+    PUBLIC_API_URL: http://localhost:3000
+
+x-server-image: &server-image ocdly-server-dev
+
+services:
+  web:
+    image: *server-image
+    init: true
+    working_dir: /app/apps/web
+    command: ["bun", ".output/server/index.mjs"]
+    ports:
+      - "3001:3001"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3001
+      SERVER_URL: http://server:3000
+      VENDURE_CHANNEL_TOKEN: ${VENDURE_CHANNEL_TOKEN:-ocdly-web}
+      VENDURE_SHOP_API_URL: ${VENDURE_SHOP_API_URL:-http://host.docker.internal:3050/shop-api}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://localhost:3001/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  server:
+    image: *server-image
+    build: *server-build
+    init: true
+    command: ["bun", "dist/index.mjs"]
+    ports:
+      - "3000:3000"
+    environment:
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-better-auth-secret-change-before-deployment}
+      NODE_ENV: development
+      OTP_PROVIDER: dev-console
+      VENDURE_IDENTITY_SECRET: ${VENDURE_IDENTITY_SECRET:-local-commerce-identity-secret-32-characters}
+      VENDURE_CHANNEL_TOKEN: ${VENDURE_CHANNEL_TOKEN:-ocdly-web}
+      VENDURE_SHOP_API_URL: ${VENDURE_SHOP_API_URL:-http://host.docker.internal:3050/shop-api}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      SERVICE_URL_SERVER: http://localhost:3000
+      SERVICE_URL_WEB: http://localhost:3001
+    entrypoint: ["/app/apps/server/docker-entrypoint.sh"]
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  migrate:
+    image: *server-image
+    command: ["bun", "run", "--cwd", "/app/packages/db", "db:migrate:deploy"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    entrypoint: ["/app/apps/server/docker-entrypoint.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ocdly
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ocdly_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ocdly"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  ocdly_postgres_data:

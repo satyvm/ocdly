@@ -1,0 +1,107 @@
+x-server-build: &server-build
+  context: .
+  dockerfile: apps/server/Dockerfile
+  args:
+    PUBLIC_API_URL: ${SERVICE_URL_SERVER:-http://localhost:3000}
+
+x-server-image: &server-image "${COOLIFY_RESOURCE_UUID:-ocdly}-server"
+
+services:
+  web:
+    image: *server-image
+    init: true
+    working_dir: /app/apps/web
+    command: ["bun", ".output/server/index.mjs"]
+    expose:
+      - "3001"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3001
+      SERVER_URL: http://server:3000
+      VENDURE_CHANNEL_TOKEN: ${VENDURE_CHANNEL_TOKEN:?Set VENDURE_CHANNEL_TOKEN}
+      VENDURE_SHOP_API_URL: ${VENDURE_SHOP_API_URL:?Set VENDURE_SHOP_API_URL}
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://localhost:3001/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  server:
+    image: *server-image
+    build: *server-build
+    init: true
+    command: ["bun", "dist/index.mjs"]
+    expose:
+      - "3000"
+    environment:
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET}
+      OTP_PROVIDER: ${OTP_PROVIDER:-disabled}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_OTP_TEMPLATE_NAME: ${WHATSAPP_OTP_TEMPLATE_NAME:-}
+      WHATSAPP_OTP_TEMPLATE_LANGUAGE: ${WHATSAPP_OTP_TEMPLATE_LANGUAGE:-}
+      VENDURE_IDENTITY_SECRET: ${VENDURE_IDENTITY_SECRET:-}
+      VENDURE_CHANNEL_TOKEN: ${VENDURE_CHANNEL_TOKEN:?Set VENDURE_CHANNEL_TOKEN}
+      VENDURE_SHOP_API_URL: ${VENDURE_SHOP_API_URL:?Set VENDURE_SHOP_API_URL}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      SERVICE_URL_SERVER: ${SERVICE_URL_SERVER:-http://localhost:3000}
+      SERVICE_URL_WEB: ${SERVICE_URL_WEB:-http://localhost:3001}
+    entrypoint: ["/app/apps/server/docker-entrypoint.sh"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  migrate:
+    image: *server-image
+    command:
+      ["bun", "run", "--cwd", "/app/packages/db", "db:migrate:deploy"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    entrypoint: ["/app/apps/server/docker-entrypoint.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    exclude_from_hc: true
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ocdly
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - ocdly_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ocdly"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  ocdly_postgres_data:

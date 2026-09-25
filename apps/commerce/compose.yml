@@ -1,0 +1,95 @@
+name: ocdly-commerce
+
+x-commerce-environment: &commerce-environment
+  NODE_ENV: production
+  VENDURE_PORT: 3050
+  VENDURE_HOST: 0.0.0.0
+  VENDURE_CHANNEL_TOKEN: ${VENDURE_CHANNEL_TOKEN:-ocdly-web}
+  VENDURE_CORS_ORIGINS: ${VENDURE_CORS_ORIGINS:-http://localhost:3001}
+  VENDURE_ASSET_URL: ${VENDURE_ASSET_URL:-http://localhost:3050/assets/}
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_NAME: ocdly_commerce
+  DB_SCHEMA: public
+  DB_USERNAME: postgres
+  DB_PASSWORD: ${COMMERCE_POSTGRES_PASSWORD:-password}
+  DB_SSL: "false"
+  SUPERADMIN_USERNAME: ${VENDURE_SUPERADMIN_USERNAME:-admin@ocdly.local}
+  SUPERADMIN_PASSWORD: ${VENDURE_SUPERADMIN_PASSWORD:-change-me-before-production}
+  COOKIE_SECRET: ${VENDURE_COOKIE_SECRET:-local-commerce-cookie-secret-32-characters}
+  VENDURE_IDENTITY_SECRET: ${VENDURE_IDENTITY_SECRET:-local-commerce-identity-secret-32-characters}
+
+x-commerce-image: &commerce-image ocdly-commerce-dev
+
+x-commerce-service: &commerce-service
+  image: *commerce-image
+  build:
+    context: ../..
+    dockerfile: apps/commerce/Dockerfile
+  environment: *commerce-environment
+  depends_on:
+    seed:
+      condition: service_completed_successfully
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ocdly_commerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${COMMERCE_POSTGRES_PASSWORD:-password}
+    ports:
+      - "5433:5432"
+    volumes:
+      - commerce_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ocdly_commerce"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  seed:
+    image: *commerce-image
+    environment: *commerce-environment
+    command: ["./node_modules/.bin/ts-node", "./src/seed.ts"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - commerce_assets:/app/apps/commerce/static/assets
+    restart: "no"
+
+  server:
+    <<: *commerce-service
+    ports:
+      - "3050:3050"
+    volumes:
+      - commerce_assets:/app/apps/commerce/static/assets
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3050/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  worker:
+    image: *commerce-image
+    environment: *commerce-environment
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    command: ["node", "./dist/index-worker.js"]
+    volumes:
+      - commerce_assets:/app/apps/commerce/static/assets
+
+volumes:
+  commerce_postgres_data:
+  commerce_assets:

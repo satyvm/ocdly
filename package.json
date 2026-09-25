@@ -1,0 +1,89 @@
+{
+  "name": "ocdly",
+  "private": true,
+  "type": "module",
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "zod": "^4.5.4",
+      "typescript": "^6.0.3",
+      "@types/bun": "^1.4.2",
+      "varlock": "1.18.0",
+      "@orpc/server": "^1.15.0",
+      "@orpc/openapi": "^1.15.0",
+      "@orpc/zod": "^1.15.0",
+      "better-auth": "1.7.3",
+      "evlog": "^2.28.1",
+      "lucide-react": "^1.41.0",
+      "next-themes": "^0.4.6",
+      "react": "^19.2.8",
+      "react-dom": "^19.2.8",
+      "sonner": "^2.0.8",
+      "tailwindcss": "^4.3.3",
+      "@orpc/client": "^1.15.0",
+      "@types/react": "^19.2.18",
+      "@types/react-dom": "^19.2.7"
+    }
+  },
+  "scripts": {
+    "auth:generate": "cd apps/server && bun run auth:generate",
+    "build": "turbo run build",
+    "check": "ultracite check",
+    "check-types": "turbo run check-types",
+    "commerce:dev": "turbo run dev --filter=@ocdly/commerce",
+    "commerce:down": "docker compose -f apps/commerce/compose.yml down",
+    "commerce:logs": "docker compose -f apps/commerce/compose.yml logs -f",
+    "commerce:migrate": "turbo run db:migrate --filter=@ocdly/commerce",
+    "commerce:seed": "turbo run db:seed --filter=@ocdly/commerce",
+    "commerce:up": "docker compose -f apps/commerce/compose.yml up -d --build --wait",
+    "commerce:worker": "turbo run dev:worker --filter=@ocdly/commerce",
+    "db:down": "docker compose down postgres",
+    "db:generate": "turbo run db:generate -F @ocdly/db --",
+    "db:migrate": "turbo run db:migrate -F @ocdly/db --",
+    "db:push": "turbo run db:push -F @ocdly/db --",
+    "db:start": "docker compose up -d postgres",
+    "db:stop": "docker compose stop postgres",
+    "db:studio": "turbo run db:studio -F @ocdly/db --",
+    "db:watch": "docker compose up postgres",
+    "deploy:infra": "turbo run deploy -F @ocdly/infra --",
+    "destroy": "turbo run destroy -F @ocdly/infra --",
+    "dev": "turbo run dev",
+    "dev:tui": "turbo run dev -F tui --",
+    "docker:build": "docker compose build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:up": "docker compose up -d --build --wait",
+    "local:up": "bun run commerce:up && bun run docker:up",
+    "local:down": "bun run docker:down && bun run commerce:down",
+    "env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/server/ && varlock codegen --path ./packages/db/",
+    "fix": "ultracite fix",
+    "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/server/ && varlock codegen --path ./packages/db/"
+  },
+  "overrides": {
+    "@effect/platform-node-shared": "4.0.0-rc.112",
+    "@effect/sql-d1": "4.0.0-rc.112",
+    "@effect/sql-sqlite-do": "4.0.0-rc.112",
+    "@effect/vitest": "4.0.0-rc.112"
+  },
+  "dependencies": {
+    "cookie-es": "3.0.0",
+    "seroval": "1.6.7",
+    "seroval-plugins": "1.6.7",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12",
+    "@ocdly/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "lefthook": "latest",
+    "turbo": "^2.10.12",
+    "typescript": "catalog:",
+    "ultracite": "7.11.0",
+    "varlock": "catalog:",
+    "yaml": "^2.9.1"
+  },
+  "packageManager": "bun@1.4.2"
+}

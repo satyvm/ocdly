@@ -1,0 +1,42 @@
+{
+  "name": "@ocdly/commerce",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "vendure build server --clean --no-progress && vendure build worker --no-progress && bun run build:dashboard",
+    "build:dashboard": "NODE_ENV=development vite build",
+    "check-types": "tsc --noEmit",
+    "db:migrate": "vendure migrate --run --config ./src/vendure-config.ts",
+    "db:migration:generate": "vendure migrate --generate --output-dir ./src/migrations --config ./src/vendure-config.ts",
+    "db:migration:revert": "vendure migrate --revert --config ./src/vendure-config.ts",
+    "db:seed": "ts-node ./src/seed.ts",
+    "dev": "vendure dev server",
+    "dev:dashboard": "vite --host 0.0.0.0",
+    "dev:worker": "vendure dev worker",
+    "start": "node ./dist/index.js",
+    "start:worker": "node ./dist/index-worker.js",
+    "test": "node --test --require ts-node/register src/environment.test.ts src/catalog/*.test.ts src/plugins/better-auth/*.test.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.6",
+    "@vendure/asset-server-plugin": "3.7.3",
+    "@vendure/common": "3.7.3",
+    "@vendure/core": "3.7.3",
+    "@vendure/dashboard": "3.7.3",
+    "@vendure/graphiql-plugin": "3.7.3",
+    "dotenv": "^17.2.2",
+    "graphql-tag": "2.12.7",
+    "pg": "^8.16.3",
+    "typeorm": "^0.3.31",
+    "vite": "7.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.6",
+    "@types/pg": "^8.23.1",
+    "@vendure/cli": "3.7.3",
+    "gql.tada": "1.11.3",
+    "ts-node": "^10.9.2",
+    "typescript": "5.8.3"
+  }
+}

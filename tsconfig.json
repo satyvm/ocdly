@@ -1,0 +1,6 @@
+{
+  "extends": "@ocdly/config/tsconfig.base.json",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
