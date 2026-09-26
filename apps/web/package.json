@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -b ../../packages/api && vite build",
-    "check-types": "tsc -b ../../packages/api && vite build && tsc --noEmit",
+    "build": "vite build",
+    "check-types": "vite build && tsc --noEmit",
     "dev": "vite dev",
     "dev:bare": "vite dev",
     "dev:tailnet": "bun scripts/dev-tailnet.ts",
@@ -12,16 +12,10 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@ocdly/api": "workspace:*",
     "@ocdly/ui": "workspace:*",
-    "@orpc/client": "catalog:",
-    "@orpc/server": "catalog:",
-    "@orpc/tanstack-query": "^1.15.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-form": "^1.33.5",
-    "@tanstack/react-query": "^5.102.8",
     "@tanstack/react-router": "^1.170.32",
-    "@tanstack/react-router-ssr-query": "^1.167.2",
     "@tanstack/react-start": "^1.168.49",
     "@varlock/vite-integration": "1.5.1",
     "better-auth": "catalog:",
@@ -38,16 +32,10 @@
   },
   "devDependencies": {
     "@ocdly/config": "workspace:*",
-    "@tanstack/react-query-devtools": "^5.102.8",
-    "@tanstack/react-router-devtools": "^1.167.1",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.3",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.1.1",
-    "jsdom": "^30.0.1",
     "typescript": "catalog:",
-    "vite": "^8.2.2",
-    "web-vitals": "^6.2.1"
+    "vite": "^8.2.2"
   }
 }

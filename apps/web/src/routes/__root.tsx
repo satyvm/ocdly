@@ -1,7 +1,6 @@
 import { Toaster } from "@ocdly/ui/components/sonner";
-import type { QueryClient } from "@tanstack/react-query";
 import {
-	createRootRouteWithContext,
+	createRootRoute,
 	HeadContent,
 	Outlet,
 	Scripts,
@@ -9,16 +8,9 @@ import {
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
 
-import type { orpc } from "@/utils/orpc";
-
 import appCss from "../index.css?url";
 
-export interface RouterAppContext {
-	orpc: typeof orpc;
-	queryClient: QueryClient;
-}
-
-export const Route = createRootRouteWithContext<RouterAppContext>()({
+export const Route = createRootRoute({
 	server: {
 		middleware: [createMiddleware().server(evlogErrorHandler)],
 	},

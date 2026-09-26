@@ -2,7 +2,7 @@
 
 Staging storefront: [ocdly.blckh.top](https://ocdly.blckh.top). Source repository: [satyvm/ocdly](https://github.com/satyvm/ocdly). The `ocdly.com` domain is reserved for a later production deployment.
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Hono, ORPC, and more.
+The storefront uses React and TanStack Start. The API uses Hono for authentication and Commerce account linking.
 
 ## Features
 
@@ -11,7 +11,6 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **TailwindCSS** - Utility-first CSS for rapid UI development
 - **Shared UI package** - shadcn/ui primitives live in `packages/ui`
 - **Hono** - Lightweight, performant server framework
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
 - **Bun** - Runtime environment
 - **Drizzle** - TypeScript-first ORM
 - **PostgreSQL** - Database engine
@@ -124,8 +123,6 @@ Coolify staging uses the single
 databases and one-shot jobs private. Production deployment will be designed
 separately for `ocdly.com`.
 
-For more details, see the guide on [Deploying with Docker Compose](https://www.better-t-stack.dev/docs/guides/docker).
-
 ## Git Hooks and Formatting
 
 - Run checks: `bun run check`
@@ -135,13 +132,14 @@ For more details, see the guide on [Deploying with Docker Compose](https://www.b
 ```
 ocdly/
 ├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
-│   └── server/      # Backend API (Hono, ORPC)
+│   ├── web/         # Storefront (React + TanStack Start)
+│   ├── server/      # Authentication and Commerce identity API (Hono)
+│   └── commerce/    # Vendure server, worker and merchant dashboard
 ├── packages/
 │   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+│   ├── auth/        # Authentication configuration
+│   ├── db/          # Application database schema
+│   └── infra/       # Axiom observability provisioning
 ```
 
 ## Available Scripts
